@@ -1,4 +1,6 @@
-﻿using BestStory.Models;
+﻿using AutoMapper;
+using BestStory.Dtos;
+using BestStory.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 
@@ -9,13 +11,15 @@ namespace BestStory.Controllers
     public class StoryController : ControllerBase
     {
         private readonly ILogger<StoryController> _logger;
+        private readonly IMapper _mapper;
 
-        public StoryController(ILogger<StoryController> logger)
+        public StoryController(ILogger<StoryController> logger, IMapper mapper)
         {
             _logger = logger;
+            _mapper = mapper;
         }
         [HttpGet]
-        [ProducesResponseType<List<Story>>(StatusCodes.Status200OK)]
+        [ProducesResponseType<List<StoryDto>>(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetStories(int quantity, bool isOrderingDesc = false)
         {
             _logger.LogInformation("GetStories start");
@@ -41,9 +45,10 @@ namespace BestStory.Controllers
             stories = isOrderingDesc
                                     ? [.. stories.OrderByDescending(storie => storie.Score)]
                                     : [.. stories.OrderBy(storie => storie.Score)];
+            var mappedStories = _mapper.Map<List<StoryDto>>(stories);
 
             _logger.LogInformation("GetStories finish");
-            return Ok(stories ?? []);
+            return Ok(mappedStories ?? []);
         }
 
         private static JsonSerializerOptions GetOptions()
